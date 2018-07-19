@@ -6,42 +6,44 @@ import { resolve } from "path";
 window.path = "http://localhost:3000/records";
 
 // Your retrieve function plus any additional functions go here ...
-function retrieve() {
+function retrieve(options) {
 
-    var p = new Promise((resolve, reject) => {
+    let obj = {previousPage:null, nextPage:null, ids:[], open:[], closedPrimaryCount:0}
+    /* var p = new Promise((resolve, reject) => {
         setTimeout(resolve, 100, {"previousPage":null,"nextPage":null,"ids":[],"open":[],"closedPrimaryCount":0})
-    }).then(data => console.log(data))
-    return p
+    }).then(data => data) */
+    //console.log(new URI())
 
-    let apiPath = window.path
-    //console.log(options)
-    if (options && options.constructor.name === 'Object') {
-        if (options.page) {
-            apiPath = apiPath + "?page=" + options.page
-        } else {
-            apiPath = apiPath + "?page=1"
-        }
-        if (options.limit) {
-            apiPath = apiPath + "&limit=" + options.limit
-        } else {
-            apiPath = apiPath + "&limit=10"
-        }
-    } else {
-        apiPath = apiPath + "?page=1&limit=10"
-    }
+    let apiPath = window.path + '?limit=10'
+    return fetch(apiPath).then(records => records.json())
+        .then(data => {
+            data.forEach(item => {
+                obj.ids.push(item.id)
+                item.isPrimary = isPrimaryColor(item.color)
+                
+                if (item.disposition === 'open') {
+                    obj.open.push(item)
+                } else {
+                    item.isPrimary? obj.closedPrimaryCount++ : null
+                }
+            })
+            obj.nextPage = 2
 
-    // limit to 10 items PER PAGE
-    // ie retrieve({page: 2, colors: ["red", "brown"]})
-    /*
-    fetch(apiPath)
-        .then(function(response) {
-            if (!response) {
-                throw new Error(response)
-            }
-            //console.log(apiPath)
-            return response.json()
+            return obj
+        }).catch(function(error) {
+            console.log(error)
         })
-    */
+
+}
+
+function isPrimaryColor(color) {
+    if (color === 'red' 
+        || color === 'blue' 
+        || color === 'yellow'
+    ) {
+        return true
+    }
+    return false
 }
 
 export default retrieve;
