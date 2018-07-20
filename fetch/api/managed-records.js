@@ -8,34 +8,44 @@ window.path = "http://localhost:3000/records";
 // Your retrieve function plus any additional functions go here ...
 function retrieve(options) {
 
-    let obj = {previousPage:null, nextPage:null, ids:[], open:[], closedPrimaryCount:0}
+    // The unmodified colors collection
+    let colorsCollection = {previousPage:null, nextPage:null, ids:[], open:[], closedPrimaryCount:0}
+
+
     /* var p = new Promise((resolve, reject) => {
         setTimeout(resolve, 100, {"previousPage":null,"nextPage":null,"ids":[],"open":[],"closedPrimaryCount":0})
     }).then(data => data) */
     //console.log(new URI())
 
+    // Hard-code the 10 item limit
     let apiPath = window.path + '?limit=10'
-    return fetch(apiPath).then(records => records.json())
+
+    // Call fetch API; return a modified collection of colors
+    return fetch(apiPath)
+        .then(records => records.json())
         .then(data => {
             data.forEach(item => {
-                obj.ids.push(item.id)
+                colorsCollection.ids.push(item.id)
                 item.isPrimary = isPrimaryColor(item.color)
                 
                 if (item.disposition === 'open') {
-                    obj.open.push(item)
+                    colorsCollection.open.push(item)
                 } else {
-                    item.isPrimary? obj.closedPrimaryCount++ : null
+                    // If disposition is 'closed':
+                    item.isPrimary? colorsCollection.closedPrimaryCount++ : null
                 }
             })
-            obj.nextPage = 2
+            colorsCollection.nextPage = 2
 
-            return obj
-        }).catch(function(error) {
+            return colorsCollection
+        })
+        .catch(function(error) {
             console.log(error)
         })
 
 }
 
+// Check if color is a primary color; return Boolean
 function isPrimaryColor(color) {
     if (color === 'red' 
         || color === 'blue' 
