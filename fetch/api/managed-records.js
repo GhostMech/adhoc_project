@@ -25,18 +25,24 @@ function retrieve(options) {
         .then(records => records.json())
         .then(data => {
             data.forEach(item => {
+
+                // Gather the item ids
                 colorsCollection.ids.push(item.id)
+
+                // Set Boolean: is color a primary or not?
                 item.isPrimary = isPrimaryColor(item.color)
                 
                 // Add only "open" disposition items to the collection
                 if (item.disposition === 'open') {
                     colorsCollection.open.push(item)
                 
-                // Otherwise increment counter for any "closed" primary colors:
+                // Otherwise increment counter if any "closed" primary colors exist
                 } else {   
                     item.isPrimary? colorsCollection.closedPrimaryCount++ : null
                 }
             })
+
+            // Set the pages
             colorsCollection.nextPage = 2
 
             return colorsCollection
@@ -51,7 +57,7 @@ function retrieve(options) {
 function isPrimaryColor(color) {
     if (color === 'red' 
         || color === 'blue' 
-        || color === 'yellow'
+            || color === 'yellow'
     ) {
         return true
     }
