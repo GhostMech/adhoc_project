@@ -28,10 +28,12 @@ function retrieve(options) {
                 colorsCollection.ids.push(item.id)
                 item.isPrimary = isPrimaryColor(item.color)
                 
+                // Add only "open" disposition items to the collection
                 if (item.disposition === 'open') {
                     colorsCollection.open.push(item)
-                } else {
-                    // If disposition is 'closed':
+                
+                // Otherwise increment counter for any "closed" primary colors:
+                } else {   
                     item.isPrimary? colorsCollection.closedPrimaryCount++ : null
                 }
             })
