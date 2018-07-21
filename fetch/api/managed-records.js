@@ -7,49 +7,69 @@ window.path = "http://localhost:3000/records";
 
 // Your retrieve function plus any additional functions go here ...
 function retrieve(options) {
+   
+    let uri = new URI({
+        protocol: "http",
+        hostname: "localhost",
+        port: 3000,
+        query: "limit=10",
+        path: "/records"
+    });
 
-    // The unmodified colors collection
-    let colorsCollection = {previousPage:null, nextPage:null, ids:[], open:[], closedPrimaryCount:0};
 
-    // Hard-code the 10 item limit
-    let apiPath = window.path + "?limit=10";
-
+    if (options && options.page !== undefined) {
+        console.log(options);
+        uri.query += "&offset=" + ((options.page * 10) - 10);
+    }
+    
     // Call fetch API; return resolved Promise of the transformed response
-    return fetch(apiPath)
+    return fetch(uri)
+    
+    // Convert the response into an array
+    .then(response => response.json())
+    
+    // Add the "isPrimary" Boolean property to every item in the array
+    .then(responseArray => {
+        
+        if (responseArray.length) {
 
-        // Convert the response into an array
-        .then(response => response.json())
-
-        // Add the "isPrimary" Boolean property to every item in the array
-        .then(responseArray => {
-            responseArray.map((item, index) => {
-                responseArray[index].isPrimary = isPrimaryColor(item.color);
-                return item;
-            });
-            console.log(responseArray)
-        })
-        /*
-        // Create a collection from the response array.
-        .then(responseArray => {
-
-            console.log(responseArray)
-            /*
-            // Gather all item ids
-            colorsCollection.ids = responseArray
-                .map(item => item.id);
-
-            // Gather only "open-disposition" items
-            colorsCollection.open = responseArray
-                .filter(item => item.disposition === "open");
-
-            // Count the number of "closed-disposition" primary-color items
-            colorsCollection.closedPrimaryCount = responseArray
-                .filter(item => item.disposition === "closed")
-                .map(item => Number(item.isPrimary))
-                .reduce((prev, curr) => prev + curr);
+            // The unmodified colors collection
+            let colorsCollection = {};
+                responseArray.map((item, index) => {
+                    responseArray[index].isPrimary = isPrimaryColor(item.color);
+                    return item;
+                });
             
+                // Create a collection from the response array. 
+                
+                // Gather all item ids
+                colorsCollection.ids = responseArray
+                    .map(item => item.id);
+
+                // Gather only "open-disposition" items
+                colorsCollection.open = responseArray
+                    .filter(item => item.disposition === "open");
+
+                // Count the number of "closed-disposition" primary-color items
+                colorsCollection.closedPrimaryCount = responseArray
+                    .filter(item => item.disposition === "closed")
+                    .map(item => Number(item.isPrimary))
+                    .reduce((prev, curr) => prev + curr);
+                
+                if (options && options.page !== undefined) {
+                    colorsCollection.nextPage = options.page < 50? options.page + 1 : null;
+                    colorsCollection.previousPage = options.page > 1? options.page - 1 : null;
+                } else {
+                    colorsCollection.nextPage = null;
+                    colorsCollection.previousPage = null;
+                }
+
+                return colorsCollection;
+            } else {
+
+                return responseArray;
+            }
         })
-        */
         .catch(e => console.log(e));
 
 }
