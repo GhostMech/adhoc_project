@@ -9,59 +9,61 @@ window.path = "http://localhost:3000/records";
 function retrieve(options) {
 
     // The unmodified colors collection
-    let colorsCollection = {previousPage:null, nextPage:null, ids:[], open:[], closedPrimaryCount:0}
-
-
-    /* var p = new Promise((resolve, reject) => {
-        setTimeout(resolve, 100, {"previousPage":null,"nextPage":null,"ids":[],"open":[],"closedPrimaryCount":0})
-    }).then(data => data) */
-    //console.log(new URI())
+    let colorsCollection = {previousPage:null, nextPage:null, ids:[], open:[], closedPrimaryCount:0};
 
     // Hard-code the 10 item limit
-    let apiPath = window.path + '?limit=10'
+    let apiPath = window.path + "?limit=10";
 
-    // Call fetch API; return a modified collection of colors
+    // Call fetch API; return resolved Promise of the transformed response
     return fetch(apiPath)
-        .then(records => records.json())
-        .then(data => {
-            data.forEach(item => {
 
-                // Gather the item ids
-                colorsCollection.ids.push(item.id)
+        // Convert the response into an array
+        .then(response => response.json())
 
-                // Set Boolean: is color a primary or not?
-                item.isPrimary = isPrimaryColor(item.color)
-                
-                // Add only "open" disposition items to the collection
-                if (item.disposition === 'open') {
-                    colorsCollection.open.push(item)
-                
-                // Otherwise increment counter if any "closed" primary colors exist
-                } else {   
-                    item.isPrimary? colorsCollection.closedPrimaryCount++ : null
-                }
-            })
-
-            // Set the pages
-            colorsCollection.nextPage = 2
-
-            return colorsCollection
+        // Add the "isPrimary" Boolean property to every item in the array
+        .then(responseArray => {
+            responseArray.map((item, index) => {
+                responseArray[index].isPrimary = isPrimaryColor(item.color);
+                return item;
+            });
+            console.log(responseArray)
         })
-        .catch(function(error) {
-            console.log(error)
+        /*
+        // Create a collection from the response array.
+        .then(responseArray => {
+
+            console.log(responseArray)
+            /*
+            // Gather all item ids
+            colorsCollection.ids = responseArray
+                .map(item => item.id);
+
+            // Gather only "open-disposition" items
+            colorsCollection.open = responseArray
+                .filter(item => item.disposition === "open");
+
+            // Count the number of "closed-disposition" primary-color items
+            colorsCollection.closedPrimaryCount = responseArray
+                .filter(item => item.disposition === "closed")
+                .map(item => Number(item.isPrimary))
+                .reduce((prev, curr) => prev + curr);
+            
         })
+        */
+        .catch(e => console.log(e));
 
 }
 
 // Check if color is a primary color; return Boolean
 function isPrimaryColor(color) {
-    if (color === 'red' 
-        || color === 'blue' 
-            || color === 'yellow'
-    ) {
-        return true
+    switch(color) {
+        case "red":
+        case "blue":
+        case "yellow":
+            return true;
+        default:
+            return false;
     }
-    return false
 }
 
 export default retrieve;
